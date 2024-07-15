@@ -2,7 +2,7 @@
 #define ITEM_H
 
 typedef struct {
-    char name[20]; // because news,sports,weather are 6,6,7
+    char name[20];
     int currentProducer;
     int countOfStr;
 } Item;

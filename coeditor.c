@@ -13,16 +13,16 @@ extern Bounded_Buffer *screenManagerQueue;
 
 void *coEditor(void *arg) {
     char *coEditorType = (char *)arg;
-    UnboundedQueue *queue;
+    UnboundedQueue *queueArticles;
 
-    printf("Starting %s co-editor\n", coEditorType);
+    //printf("Starting %s co-editor\n", coEditorType);
 
     if (strcmp(coEditorType, "SPORTS") == 0) {
-        queue = sportsQueue;
+        queueArticles = sportsQueue;
     } else if (strcmp(coEditorType, "NEWS") == 0) {
-        queue = newsQueue;
+        queueArticles = newsQueue;
     } else if (strcmp(coEditorType, "WEATHER") == 0) {
-        queue = weatherQueue;
+        queueArticles = weatherQueue;
     } else {
         printf("Invalid co-editor type: %s\n", coEditorType);
         return NULL;
@@ -30,15 +30,17 @@ void *coEditor(void *arg) {
 
     while (1) {
         //printf("%s co-editor checking exit condition\n", coEditorType);
-        if (isEmptyUnbounded(queue) && queue->DispatcherDoneEnqueue == 0 && queue->itemsInQueue == 0) {
+        if (isEmptyUnbounded(queueArticles) && queueArticles->DispatcherDoneEnqueue == 0 && queueArticles->itemsInQueue == 0) {
+            screenManagerQueue->isDonePrinting++;
+            return NULL;
             //printf("%s co-editor exit condition met\n", coEditorType);
-            break;
+            //break;
         }
 
-        if (!isEmptyUnbounded(queue)) {
+        if (!isEmptyUnbounded(queueArticles)) {
             //printf("%s co-editor dequeuing item\n", coEditorType);
-            Item item = dequeueUnbounded(queue);
-            queue->itemsInQueue--;
+            Item item = dequeueUnbounded(queueArticles);
+            queueArticles->itemsInQueue--;
 
             if (strcmp(item.name, "EMPTY") != 0) {
                 //printf("%s co-editor processing item: %s\n", coEditorType, item.name);
@@ -56,8 +58,5 @@ void *coEditor(void *arg) {
             sched_yield(); // Give other threads a chance to run
         }
     }
-
-    screenManagerQueue->isDonePrinting++;
-    printf("%s co-editor finished\n", coEditorType);
-    return NULL;
+    //printf("%s co-editor finished\n", coEditorType);
 }

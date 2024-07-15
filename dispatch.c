@@ -19,36 +19,34 @@ void *dispatch(void *arg) {
         Queue *currentQueue = &producerQueues[currentProducer];
         if (currentQueue->doneDequeue == 1) {
             if (!isEmpty(currentQueue)) {
-                char str[20];
                 int countOfStr;
-                int item = dequeue(currentQueue);
+                int articaleType = dequeue(currentQueue);
                 currentQueue->itemsInQueue--;
-                if (item == -1) {
+                if (articaleType == -1) {
                     continue;
                 }
 
-                if (item == 1) {
+                Item newItem;
+                if (articaleType == 1) {
                     countOfStr = currentQueue->sportsCounter;
-                    Item item = createItem(producers[currentProducer].producerNumber, countOfStr, "SPORTS");
-                    sleep(0.1); 
-                    enqueueUnbounded(sportsQueue, item);
+                    newItem = createItem(producers[currentProducer].producerNumber, countOfStr, "SPORTS");
+                    enqueueUnbounded(sportsQueue, newItem);
                     sportsQueue->itemsInQueue++;
                     currentQueue->sportsCounter++;
-                } else if (item == 2) {
+                } else if (articaleType == 2) {
                     countOfStr = currentQueue->newsCounter;
-                    Item item = createItem(producers[currentProducer].producerNumber, countOfStr, "NEWS");
-                    sleep(0.1); 
-                    enqueueUnbounded(newsQueue, item);
+                    newItem = createItem(producers[currentProducer].producerNumber, countOfStr, "NEWS");
+                    enqueueUnbounded(newsQueue, newItem);
                     newsQueue->itemsInQueue++;
                     currentQueue->newsCounter++;
-                } else if (item == 3) {
+                } else if (articaleType == 3) {
                     countOfStr = currentQueue->weatherCounter;
-                    Item item = createItem(producers[currentProducer].producerNumber, countOfStr, "WEATHER");
-                    sleep(0.1);
-                    enqueueUnbounded(weatherQueue, item);
+                    newItem = createItem(producers[currentProducer].producerNumber, countOfStr, "WEATHER");
+                    enqueueUnbounded(weatherQueue, newItem);
                     weatherQueue->itemsInQueue++;
                     currentQueue->weatherCounter++;
                 }
+                usleep(100000);
             } else if (currentQueue->doneEnqueue == 0 && currentQueue->itemsInQueue == 0 && isEmpty(currentQueue)) {
                 countOfDoneQueues++;
                 currentQueue->doneDequeue = 0;
@@ -62,5 +60,5 @@ void *dispatch(void *arg) {
         }
         currentProducer = (currentProducer + 1) % numProducers;
     }
-    return NULL;
+    //return NULL;
 }

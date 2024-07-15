@@ -3,6 +3,11 @@
 #include <stdio.h>
 #include "semaphore.h"
 
+/*
+    * This file contains the implementation of the semaphore functions.
+    * The functions are used to initialize, wait and signal binary and counting semaphores.
+    * The binary semaphore is used to control access to a resource with only two states: locked and unlocked.
+*/
 void initBinarySemaphore(BinarySemaphore *sem, int value) {
     sem->value = value;
     if(pthread_mutex_init(&sem->mutex, NULL) != 0) {

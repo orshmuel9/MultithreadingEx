@@ -11,8 +11,9 @@ void *screenManager(void *arg) {
     while (1) {
         if ((isBoundedBufferEmpty() && screenManagerQueue->isDonePrinting == 3 && screenManagerQueue->itemsInQueue == 0) || countOfProducts == 0) {
             printf("DONE\n");
-            exit(0);
-            break;
+            //exit(0);
+            return NULL;
+            //break;
         }
         if (!isBoundedBufferEmpty()) {
             char *itemStr = removeItem();
@@ -25,5 +26,4 @@ void *screenManager(void *arg) {
             countOfProducts--;
         }
     }
-    return NULL;
 }

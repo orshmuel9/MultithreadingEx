@@ -10,6 +10,7 @@
 #include "screen_manager.h"
 #include "item.h"
 
+#define INITIAL_BUFFER_SIZE 100
 // Global variables
 UnboundedQueue *sportsQueue;
 UnboundedQueue *weatherQueue;
@@ -24,28 +25,30 @@ pthread_cond_t coEditorsDoneCond = PTHREAD_COND_INITIALIZER;
 void readConfigFile(const char *filename, int *numProducers, int *coEditorQueueSize, int *countOfProducts) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
-        perror("Failed to open the file.\n");
+        perror("Failed to open the file");
         exit(1);
     }
 
-    char buffer[100];
+    char *buffer = NULL;
+    size_t bufferSize = 0;
+    size_t lineLength;
     int queueSize, numProducts, producerNumber;
     *numProducers = 0;
     *countOfProducts = 0;
 
     // Read the file line by line
-    while (fgets(buffer, sizeof(buffer), file) != NULL) {
+    while ((lineLength = getline(&buffer, &bufferSize, file)) != -1) {
         if (strncmp(buffer, "PRODUCER", 8) == 0) {
             producerNumber = atoi(&buffer[9]);
-            if (fgets(buffer, sizeof(buffer), file) != NULL) {
+            if ((lineLength = getline(&buffer, &bufferSize, file)) != -1) {
                 numProducts = atoi(buffer);
                 *countOfProducts += numProducts;
             }
-            if (fgets(buffer, sizeof(buffer), file) != NULL) {
+            if ((lineLength = getline(&buffer, &bufferSize, file)) != -1) {
                 sscanf(buffer, "queue size = %d", &queueSize);
                 producers = realloc(producers, (*numProducers + 1) * sizeof(Producer));
                 if (producers == NULL) {
-                    perror("Memory allocation failed.\n");
+                    perror("Memory allocation failed");
                     exit(1);
                 }
                 producers[*numProducers].numProducts = numProducts;
@@ -58,7 +61,7 @@ void readConfigFile(const char *filename, int *numProducers, int *coEditorQueueS
             sscanf(buffer, "Co-Editor queue size = %d", coEditorQueueSize);
         }
     }
-
+    free(buffer);
     fclose(file);
 }
 
@@ -68,11 +71,9 @@ void initializeQueues(int numProducers, int coEditorQueueSize) {
         perror("Memory allocation failed.\n");
         exit(1);
     }
-
     for (int i = 0; i < numProducers; i++) {
         producerQueues[i] = *createQueue(producers[i].queueSize);
     }
-
     sportsQueue = createUnboundedQueue();
     newsQueue = createUnboundedQueue();
     weatherQueue = createUnboundedQueue();

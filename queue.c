@@ -32,13 +32,13 @@ UnboundedQueue *createUnboundedQueue() {
     return queue;
 }
 
-void enqueueUnbounded(UnboundedQueue *queue, Item item) {
+void enqueueUnbounded(UnboundedQueue *queue, Item articale) {
     Node *newNode = malloc(sizeof(Node));
     if(newNode == NULL) {
         perror("Memory allocation failed.\n");
         exit(1);
     }
-    newNode->item = item;
+    newNode->item = articale;
     newNode->next = NULL;
 
     if(pthread_mutex_lock(&queue->mutex) != 0) {
@@ -66,6 +66,7 @@ void enqueueUnbounded(UnboundedQueue *queue, Item item) {
 Item dequeueUnbounded(UnboundedQueue *queue) {
     if (isEmptyUnbounded(queue)) {
         Item item;
+        // empty item means queue is over
         strcpy(item.name, "EMPTY");
         return item;
     }
@@ -90,20 +91,21 @@ Item dequeueUnbounded(UnboundedQueue *queue) {
     free(firstNode);
     return item;
 }
-
+// Check if the queue is empty
 int isEmptyUnbounded(UnboundedQueue *queue) {
     if(pthread_mutex_lock(&queue->mutex) != 0) {
         perror("pthread_mutex_lock");
         exit(1);
     }
     int empty = (queue->head == NULL);
+    // printf("Empty: %d\n", empty);
     if(pthread_mutex_unlock(&queue->mutex) != 0) {
         perror("pthread_mutex_unlock");
         exit(1);
     }
     return empty;
 }
-
+// This function creates a queue with a given size
 Queue *createQueue(int size) {
     Queue *queue = malloc(sizeof(Queue));
     if (queue == NULL) {
@@ -115,10 +117,11 @@ Queue *createQueue(int size) {
         perror("Memory allocation failed.\n");
         exit(1);
     }
-    queue->front = 0;
-    queue->rear = -1;
-    queue->count = 0;
+    // Initialize the queue
     queue->size = size;
+    queue->front = 0;
+    queue->last = -1;
+    queue->count = 0;
     queue->newsCounter = 0;
     queue->sportsCounter = 0;
     queue->weatherCounter = 0;
@@ -146,8 +149,8 @@ void enqueue(Queue *queue, int item) {
         perror("pthread_mutex_lock");
         exit(1);
     }
-    queue->rear = (queue->rear + 1) % queue->size;
-    queue->buffer[queue->rear] = item;
+    queue->last = (queue->last + 1) % queue->size;
+    queue->buffer[queue->last] = item;
     queue->count++;
     if(pthread_cond_signal(&queue->empty) != 0) {
         perror("pthread_cond_signal");
@@ -197,7 +200,7 @@ Bounded_Buffer *createBoundedBuffer(int size) {
     }
     queue->buffer = malloc(size * sizeof(char *));
     queue->front = 0;
-    queue->rear = -1;
+    queue->last = -1;
     queue->count = 0;
     queue->size = size;
     queue->doneEnqueue = 1;
@@ -219,8 +222,9 @@ void insert(char *s) {
         perror("pthread_mutex_lock");
         exit(1);
     }
-    screenManagerQueue->rear = (screenManagerQueue->rear + 1) % screenManagerQueue->size;
-    screenManagerQueue->buffer[screenManagerQueue->rear] = strdup(s);
+    // printf("Inserting %s\n", s);
+    screenManagerQueue->last = (screenManagerQueue->last + 1) % screenManagerQueue->size;
+    screenManagerQueue->buffer[screenManagerQueue->last] = strdup(s);
     screenManagerQueue->count++;
     if(pthread_mutex_unlock(&screenManagerQueue->mutex) != 0) {
         perror("pthread_mutex_unlock");
@@ -247,6 +251,7 @@ char *removeItem() {
 }
 
 int isBoundedBufferEmpty() {
+    // printf("Count: %d\n", screenManagerQueue->count);
     return (screenManagerQueue->count == 0);
 }
 

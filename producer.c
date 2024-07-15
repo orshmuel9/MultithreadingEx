@@ -11,7 +11,8 @@ void *produce(void *arg) {
     int producerNumber = producer->producerID;
     Queue *queue = &producerQueues[producerNumber];
     int productCount = 0;
-    while (productCount < producer->numProducts) {
+    int numProducts = producer->numProducts;
+    while (productCount < numProducts) {
         // Wait until the queue is not full
         while (isFull(queue)) {}
         int randomNumber = (rand() % 3) + 1;

@@ -28,7 +28,7 @@ int isEmptyUnbounded(UnboundedQueue *queue);
 typedef struct {
     int *buffer;
     int front;
-    int rear;
+    int last;
     int count;
     int size;
     pthread_mutex_t mutex;
@@ -51,7 +51,7 @@ int isFull(Queue *queue);
 typedef struct {
     char **buffer;
     int front;
-    int rear;
+    int last;
     int count;
     int size;
     pthread_mutex_t mutex;
